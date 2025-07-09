@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/inventory_management', {
+mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
@@ -22,11 +22,14 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/inventory
 // Routes
 app.use('/api/sections', require('./routes/sections'));
 app.use('/api/items', require('./routes/items'));
+app.use('/api/auth', require('./routes/auth'));
 
 // Basic route
 app.get('/', (req, res) => {
   res.json({ message: 'Inventory Management System API' });
 });
+
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -34,7 +37,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT ;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
