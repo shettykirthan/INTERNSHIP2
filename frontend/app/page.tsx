@@ -14,6 +14,14 @@ import { CreateSectionModal } from "@/components/create-section-modal"
 import { SectionDetail } from "@/components/section-detail"
 import { useRole } from "@/context/RoleContext"
 
+interface ApiSection {
+  _id: string
+  sectionname: string
+  desc: string
+  items: number
+  createdAt: string
+}
+
 interface Section {
   id: string
   name: string
@@ -23,9 +31,9 @@ interface Section {
 }
 
 export default function InventoryDashboard() {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL as string
   const { role } = useRole()
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedSection, setSelectedSection] = useState<Section | null>(null)
   const [sections, setSections] = useState<Section[]>([])
@@ -35,33 +43,33 @@ export default function InventoryDashboard() {
   useEffect(() => {
     const fetchSections = async () => {
       try {
-        const response = await axios.get(`${baseUrl}/api/sections`)
-        const mappedSections: Section[] = response.data.map((section: any) => ({
+        const response = await axios.get<ApiSection[]>(`${baseUrl}/api/sections`)
+        const mappedSections: Section[] = response.data.map((section) => ({
           id: String(section._id),
           name: section.sectionname,
           description: section.desc,
           itemCount: section.items,
-          createdAt: section.createdAt,
+          createdAt: section.createdAt
         }))
         setSections(mappedSections)
-        setLoading(false)
       } catch (err) {
         console.error("Error fetching sections:", err)
         setError("Failed to load sections")
+      } finally {
         setLoading(false)
       }
     }
 
-    fetchSections()
-  }, [])
+    if (baseUrl) fetchSections()
+  }, [baseUrl])
 
   const totalItems = sections.reduce((sum, section) => sum + section.itemCount, 0)
 
   const handleCreateSection = async (name: string, description: string) => {
     try {
-      const response = await axios.post(`${baseUrl}/api/sections`, {
+      const response = await axios.post<ApiSection>(`${baseUrl}/api/sections`, {
         sectionname: name,
-        desc: description,
+        desc: description
       })
 
       const newSection = response.data
@@ -71,7 +79,7 @@ export default function InventoryDashboard() {
         name: newSection.sectionname,
         description: newSection.desc,
         itemCount: newSection.items || 0,
-        createdAt: newSection.createdAt,
+        createdAt: newSection.createdAt
       }
 
       setSections([formatted, ...sections])
@@ -172,7 +180,9 @@ export default function InventoryDashboard() {
                 >
                   <CardHeader>
                     <CardTitle className="text-lg">{section.name}</CardTitle>
-                    <CardDescription className="text-slate-400">{section.description}</CardDescription>
+                    <CardDescription className="text-slate-400">
+                      {section.description}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center justify-between">
@@ -206,7 +216,9 @@ export default function InventoryDashboard() {
               >
                 <CardHeader>
                   <CardTitle className="text-lg">{section.name}</CardTitle>
-                  <CardDescription className="text-slate-400 text-sm">{section.description}</CardDescription>
+                  <CardDescription className="text-slate-400 text-sm">
+                    {section.description}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-between">

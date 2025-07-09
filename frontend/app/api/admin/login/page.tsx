@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import axios from "axios"
 import { useRole } from "@/context/RoleContext"
 
 export default function AdminLoginPage() {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL as string
   const router = useRouter()
   const { setRole } = useRole()
 
@@ -14,7 +14,7 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
 
@@ -26,23 +26,27 @@ export default function AdminLoginPage() {
 
       const { token, user } = res.data
 
-      // Save token and user in sessionStorage
+      // Save token and user data to sessionStorage
       sessionStorage.setItem("authToken", token)
       sessionStorage.setItem("user", JSON.stringify(user))
 
-      // Optional: Check for admin privileges (for now assume any valid login is admin)
+      // TEMP: Treat any successful login as admin
       setRole("admin")
 
-      router.push("/") // redirect to home/dashboard
-    } catch (err: any) {
-      console.error("Login failed:", err)
+      // Redirect to dashboard/home
+      router.push("/")
+    } catch (error) {
+      console.error("Login failed:", error)
       setError("Invalid email or password")
     }
   }
 
   return (
     <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center px-4">
-      <form onSubmit={handleLogin} className="bg-slate-800 p-8 rounded-lg w-full max-w-sm shadow-lg">
+      <form
+        onSubmit={handleLogin}
+        className="bg-slate-800 p-8 rounded-lg w-full max-w-sm shadow-lg"
+      >
         <h2 className="text-2xl font-bold mb-6 text-center">Admin Login</h2>
 
         {error && <p className="text-red-400 mb-4">{error}</p>}
@@ -55,6 +59,7 @@ export default function AdminLoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-3 py-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none"
             placeholder="admin@example.com"
+            required
           />
         </div>
 
@@ -66,6 +71,7 @@ export default function AdminLoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-3 py-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none"
             placeholder="********"
+            required
           />
         </div>
 

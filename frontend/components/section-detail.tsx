@@ -23,6 +23,12 @@ interface Item {
   quantity: number
 }
 
+interface FetchedItem {
+  _id: string
+  itemname: string
+  availableCount: number
+}
+
 interface SectionDetailProps {
   section: Section
   onBack: () => void
@@ -39,17 +45,22 @@ export function SectionDetail({
   const { role } = useRole()
   const [items, setItems] = useState<Item[]>([])
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false)
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL as string
 
   useEffect(() => {
     axios
       .get(`${baseUrl}/api/items/section/${section.id}`)
       .then((res) => {
-        const fetched = res.data.map((item: any) => ({ ...item, quantity: 1 }))
+        const fetched: Item[] = res.data.map((item: FetchedItem) => ({
+          itemId: item._id,
+          itemname: item.itemname,
+          availableCount: item.availableCount,
+          quantity: 1,
+        }))
         setItems(fetched)
       })
       .catch((err) => console.error(err))
-  }, [section.id])
+  }, [section.id, baseUrl])
 
   const updateQuantity = (itemId: string, multiplier: 1 | -1) => {
     const updatedItems = items.map((item) => {
@@ -92,7 +103,12 @@ export function SectionDetail({
         availableCount: available,
       })
       .then((res) => {
-        const newItem: Item = { ...res.data, quantity: 1 }
+        const newItem: Item = {
+          itemId: res.data._id,
+          itemname: res.data.itemname,
+          availableCount: res.data.availableCount,
+          quantity: 1,
+        }
         const updatedItems = [...items, newItem]
         setItems(updatedItems)
         onUpdateSection({ ...section, itemCount: updatedItems.length })
@@ -124,6 +140,7 @@ export function SectionDetail({
   return (
     <div className="min-h-screen bg-slate-900 text-white p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <Button
@@ -159,6 +176,7 @@ export function SectionDetail({
           )}
         </div>
 
+        {/* Items Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((item) => (
             <Card key={item.itemId} className="bg-slate-800 border-slate-700">
@@ -168,6 +186,7 @@ export function SectionDetail({
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
+                  {/* Quantity controls */}
                   <div className="flex items-center gap-2">
                     {role !== "user" && (
                       <>
@@ -198,6 +217,8 @@ export function SectionDetail({
                       </>
                     )}
                   </div>
+
+                  {/* Info + Delete */}
                   <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"
@@ -224,6 +245,7 @@ export function SectionDetail({
         </div>
       </div>
 
+      {/* Add Item Modal */}
       {role !== "user" && (
         <AddItemModal
           isOpen={isAddItemModalOpen}
